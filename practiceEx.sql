@@ -77,3 +77,106 @@ AND price - cost > (
   WHERE name = "グレーパーカー"
 )
 ;
+
+
+
+# 5.販売履歴の分析
+-- 売れた商品ごとのidと売れた数を取得
+SELECT item_id, COUNT(*)
+FROM sales_records
+GROUP BY item_id;
+
+-- 売れた数が多い上位5商品のidと個数を取得してください
+SELECT item_id, COUNT(*)
+FROM sales_records
+GROUP BY item_id
+ORDER BY COUNT(*) DESC
+LIMIT 5;
+
+
+
+# 6.売上利益の分析
+-- 売れた数が多い上位5商品のIDと名前、個数を取得
+SELECT items.id, name, COUNT(*)
+FROM sales_records
+JOIN items
+ON sales_records.item_id = items.id
+GROUP BY items.id, name
+ORDER BY COUNT(*) DESC
+LIMIT 5;
+
+-- このサイトの総売上と総利益を取得
+SELECT SUM(price) AS "総売上" ,SUM(price - cost) AS "総利益"
+FROM sales_records
+JOIN items
+ON sales_records.item_id = items.id;
+
+
+
+# 7.日ごとのデータ分析
+-- 日ごとの販売個数とその日付を取得
+SELECT purchased_at, COUNT(*) AS "販売個数"
+FROM  sales_records
+GROUP BY purchased_at;
+
+-- 日ごとの売上額とその日付を取得してください
+SELECT purchased_at, SUM(price) AS "売上額"
+FROM sales_records
+JOIN items
+ON sales_records.item_id = items.id
+GROUP BY purchased_at;
+
+
+
+# 8.複雑なユーザーデータの分析
+-- 10個以上購入したユーザーIDとユーザー名、購入した商品の数を取得
+SELECT users.id, name, COUNT(*) AS "購入数"
+FROM sales_records
+JOIN users
+ON sales_records.user_id = users.id
+GROUP BY users.id, name
+HAVING COUNT(*) >= 10; # グループ分けしている時の条件の指定は「HAVING」
+
+-- 「サンダル」を購入したユーザーのidと名前を取得
+SELECT DISTINCT (users.id), (users.name)
+FROM sales_records
+JOIN users
+ON sales_records.user_id = users.id
+JOIN items
+ON sales_records.item_id = items.id
+WHERE items.name = "サンダル"　# グループ分けしていない時の条件の指定は「WHERE」
+ORDER BY users.id ASC;
+
+
+
+# 9.複雑な商品データの取得
+-- 男性向け、女性向け、男女兼用商品ごとに指定されたデータを取得
+SELECT items.gender, SUM(price) AS "売上額"
+FROM sales_records
+JOIN items
+ON sales_records.item_id = items.id
+GROUP BY items.gender;
+
+-- 売上額が上位5位の商品の指定されたデータを取得
+SELECT items.id, name, SUM(price) AS "売上額"
+FROM sales_records
+JOIN items
+ON sales_records.item_id = items.id
+GROUP BY items.id, name
+ORDER BY SUM(price) DESC
+LIMIT 5;
+
+-- グレーパーカーより売上額が高い商品の指定されたデータを取得
+SELECT items.id, name, SUM(price) AS "売上額"
+FROM sales_records
+JOIN items
+ON sales_records.item_id = items.id
+GROUP BY items.id, name
+HAVING SUM(price) > (
+  SELECT SUM(price)
+  FROM sales_records
+  JOIN items
+  ON sales_records.item_id = items.id
+  WHERE name = "グレーパーカー"
+)
+;
