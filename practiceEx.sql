@@ -146,3 +146,36 @@ JOIN items
 ON sales_records.item_id = items.id
 WHERE items.name = "サンダル"　# グループ分けしていない時の条件の指定は「WHERE」サンダルを購入した人で絞り混んでいる
 ORDER BY users.id ASC;
+
+
+
+# 9.複雑な商品データの取得
+-- 男性向け、女性向け、男女兼用商品ごとに指定されたデータを取得
+SELECT items.gender, SUM(price) AS "売上額"
+FROM sales_records
+JOIN items
+ON sales_records.item_id = items.id
+GROUP BY items.gender;
+
+-- 売上額が上位5位の商品の指定されたデータを取得
+SELECT items.id, name, SUM(price) AS "売上額"
+FROM sales_records
+JOIN items
+ON sales_records.item_id = items.id
+GROUP BY items.id
+ORDER BY SUM(price) DESC
+LIMIT 5;
+
+-- グレーパーカーより売上額が高い商品の指定されたデータを取得
+SELECT items.id, name, SUM(price) AS "売上額"
+FROM sales_records
+JOIN items
+ON sales_records.item_id = items.id
+GROUP BY items.id, name
+HAVING SUM(price) > (
+  SELECT SUM(price)
+  FROM sales_records
+  JOIN items
+  ON sales_records.item_id = items.id
+  WHERE name = "グレーパーカー"
+);
